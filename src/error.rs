@@ -167,6 +167,22 @@ impl Error {
         }
     }
 
+    /// Ergonomic helper for handling all status codes as [Response].
+    ///
+    /// ```
+    /// # ureq::is_test(true);
+    /// let response = ureq::get("http://httpbin.org/status/500").call()
+    ///     .or_else(|e| e.into_response()).unwrap();
+    ///
+    /// assert_eq!(response.status(), 500);
+    /// ```
+    pub fn into_response(self) -> Result<Response, Transport> {
+        match self {
+            Error::Status(_, response) => Ok(response),
+            Error::Transport(transport) => Err(transport),
+        }
+    }
+
     /// Return true iff the error was due to a connection closing.
     pub(crate) fn connection_closed(&self) -> bool {
         if self.kind() != ErrorKind::Io {
